@@ -1334,7 +1334,12 @@ object LyricsUtils {
     suspend fun romanizeArabic(text: String): String = withContext(Dispatchers.Default) {
         if (text.isEmpty()) return@withContext ""
 
-        val words = text.split(Regex("((?<=\\s|[.,!?;،؛؟])|(?=\\s|[.,!?;،؛؟]))")).filter { it.isNotEmpty() }
+        // Normalize accusative Alif with Tanwin Fath: "اً" or "ىً" -> "ً" ("an")
+        val normalizedText = text
+            .replace("\u0627\u064B", "\u064B")
+            .replace("\u0649\u064B", "\u064B")
+
+        val words = normalizedText.split(Regex("((?<=\\s|[.,!?;،؛؟])|(?=\\s|[.,!?;،؛؟]))")).filter { it.isNotEmpty() }
         val result = StringBuilder(text.length * 2)
 
         for (word in words) {
