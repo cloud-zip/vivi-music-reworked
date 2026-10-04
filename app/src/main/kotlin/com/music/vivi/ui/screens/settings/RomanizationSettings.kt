@@ -37,6 +37,7 @@ import com.music.vivi.constants.LyricsRomanizeBulgarianKey
 import com.music.vivi.constants.LyricsRomanizeChineseKey
 import com.music.vivi.constants.LyricsRomanizeHindiKey
 import com.music.vivi.constants.LyricsRomanizePunjabiKey
+import com.music.vivi.constants.LyricsRomanizeArabicKey
 import com.music.vivi.constants.LyricsRomanizeCyrillicByLineKey
 import com.music.vivi.constants.LyricsRomanizeJapaneseKey
 import com.music.vivi.constants.LyricsRomanizeKoreanKey
@@ -66,6 +67,7 @@ fun RomanizationSettings(
     val (lyricsRomanizeChinese, onLyricsRomanizeChineseChange) = rememberPreference(LyricsRomanizeChineseKey, defaultValue = true)
     val (lyricsRomanizeHindi, onLyricsRomanizeHindiChange) = rememberPreference(LyricsRomanizeHindiKey, defaultValue = true)
     val (lyricsRomanizePunjabi, onLyricsRomanizePunjabiChange) = rememberPreference(LyricsRomanizePunjabiKey, defaultValue = true)
+    val (lyricsRomanizeArabic, onLyricsRomanizeArabicChange) = rememberPreference(LyricsRomanizeArabicKey, defaultValue = true)
     val (lyricsRomanizeRussian, onLyricsRomanizeRussianChange) = rememberPreference(LyricsRomanizeRussianKey, defaultValue = true)
     val (lyricsRomanizeUkrainian, onLyricsRomanizeUkrainianChange) = rememberPreference(LyricsRomanizeUkrainianKey, defaultValue = true)
     val (lyricsRomanizeSerbian, onLyricsRomanizeSerbianChange) = rememberPreference(LyricsRomanizeSerbianKey, defaultValue = true)
@@ -209,6 +211,27 @@ fun RomanizationSettings(
                         )
                     },
                     onClick = { onLyricsRomanizePunjabiChange(!lyricsRomanizePunjabi) },
+                    isExpressive = true
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.language),
+                    title = { Text(stringResource(R.string.lyrics_romanize_arabic)) },
+                    trailingContent = {
+                        Switch(
+                            checked = lyricsRomanizeArabic,
+                            onCheckedChange = onLyricsRomanizeArabicChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (lyricsRomanizeArabic) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onLyricsRomanizeArabicChange(!lyricsRomanizeArabic) },
                     isExpressive = true
                 )
             )

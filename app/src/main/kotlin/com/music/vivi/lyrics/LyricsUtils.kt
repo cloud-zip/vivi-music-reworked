@@ -145,6 +145,30 @@ object LyricsUtils {
         "੫" to "5", "੬" to "6", "੭" to "7", "੮" to "8", "੯" to "9"
     )
 
+    private val ARABIC_ROMAJI_MAP: Map<String, String> = mapOf(
+        "ء" to "'", "آ" to "aa", "أ" to "a", "ؤ" to "'", "إ" to "i", "ئ" to "'",
+        "ا" to "a", "ب" to "b", "ة" to "a", "ت" to "t", "ث" to "th", "ج" to "j",
+        "ح" to "h", "خ" to "kh", "د" to "d", "ذ" to "dh", "ر" to "r", "ز" to "z",
+        "س" to "s", "ش" to "sh", "ص" to "s", "ض" to "d", "ط" to "t", "ظ" to "z",
+        "ع" to "'", "غ" to "gh", "ف" to "f", "ق" to "q", "ك" to "k", "ل" to "l",
+        "م" to "m", "ن" to "n", "ه" to "h", "و" to "w", "ى" to "a", "ي" to "y",
+        "ٱ" to "a", "پ" to "p", "چ" to "ch", "ژ" to "zh", "ڤ" to "v", "گ" to "g",
+        "َ" to "a", "ُ" to "u", "ِ" to "i", "ً" to "an", "ٌ" to "un", "ٍ" to "in",
+        "ْ" to "", "ٰ" to "aa", "ـ" to "",
+        "٠" to "0", "١" to "1", "٢" to "2", "٣" to "3", "٤" to "4",
+        "٥" to "5", "٦" to "6", "٧" to "7", "٨" to "8", "٩" to "9"
+    )
+
+    private val ARABIC_SUN_LETTERS: Set<Char> = setOf(
+        'ت', 'ث', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ل', 'ن'
+    )
+
+    private val ARABIC_CONSONANTS: Set<Char> = setOf(
+        'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز',
+        'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق',
+        'ك', 'ل', 'م', 'ن', 'ه', 'پ', 'چ', 'ژ', 'ڤ', 'گ'
+    )
+
     private val GENERAL_CYRILLIC_ROMAJI_MAP: Map<String, String> = mapOf(
         "А" to "A", "Б" to "B", "В" to "V", "Г" to "G", "Ґ" to "G", "Д" to "D",
         "Ѓ" to "Ǵ", "Ђ" to "Đ", "Е" to "E", "Ё" to "Yo", "Є" to "Ye", "Ж" to "Zh",
@@ -1295,6 +1319,95 @@ object LyricsUtils {
             }
         }
         sb.toString()
+    }
+
+    fun isArabic(text: String): Boolean {
+        return text.any { char ->
+            (char in '\u0600'..'\u06FF') ||
+            (char in '\u0750'..'\u077F') ||
+            (char in '\u08A0'..'\u08FF') ||
+            (char in '\uFB50'..'\uFDFF') ||
+            (char in '\uFE70'..'\uFEFF')
+        }
+    }
+
+    suspend fun romanizeArabic(text: String): String = withContext(Dispatchers.Default) {
+        if (text.isEmpty()) return@withContext ""
+
+        val words = text.split(Regex("((?<=\\s|[.,!?;،؛؟])|(?=\\s|[.,!?;،؛؟]))")).filter { it.isNotEmpty() }
+        val result = StringBuilder(text.length * 2)
+
+        for (word in words) {
+            if (word.matches(Regex("[\\s.,!?;،؛؟]+"))) {
+                result.append(
+                    word.replace('،', ',')
+                        .replace('؛', ';')
+                        .replace('؟', '?')
+                )
+                continue
+            }
+
+            var i = 0
+            val len = word.length
+
+            // Handle "ال" (Al-) prefix
+            if (len >= 3 && (word.startsWith("ال") || word.startsWith("ٱل"))) {
+                val nextChar = word[2]
+                if (ARABIC_SUN_LETTERS.contains(nextChar)) {
+                    val sunRom = ARABIC_ROMAJI_MAP[nextChar.toString()] ?: nextChar.toString()
+                    result.append("a").append(sunRom).append("-")
+                } else {
+                    result.append("al-")
+                }
+                i = 2
+            }
+
+            while (i < len) {
+                val ch = word[i]
+                val nextChar = if (i + 1 < len) word[i + 1] else null
+                val prevChar = if (i > 0) word[i - 1] else null
+
+                // Handle Shadda (doubles preceding consonant)
+                if (nextChar == '\u0651') {
+                    val rom = ARABIC_ROMAJI_MAP[ch.toString()] ?: ch.toString()
+                    result.append(rom).append(rom)
+                    i += 2
+                    continue
+                }
+
+                // Handle 'و' as vowel (o at word end, oo inside word)
+                if (ch == 'و' && prevChar != null && ARABIC_CONSONANTS.contains(prevChar)) {
+                    if (i == len - 1) {
+                        result.append("o")
+                        i++
+                        continue
+                    } else if (nextChar != null && nextChar != 'ا' && nextChar != 'ي') {
+                        result.append("oo")
+                        i++
+                        continue
+                    }
+                }
+
+                // Handle 'ي' as vowel (i at word end, ee inside word)
+                if (ch == 'ي' && prevChar != null && ARABIC_CONSONANTS.contains(prevChar)) {
+                    if (i == len - 1) {
+                        result.append("i")
+                        i++
+                        continue
+                    } else if (nextChar != null && nextChar != 'ا' && nextChar != 'و') {
+                        result.append("ee")
+                        i++
+                        continue
+                    }
+                }
+
+                val rom = ARABIC_ROMAJI_MAP[ch.toString()] ?: ch.toString()
+                result.append(rom)
+                i++
+            }
+        }
+
+        result.toString().trim()
     }
 
     private fun isCyrillicVowel(char: Char): Boolean {

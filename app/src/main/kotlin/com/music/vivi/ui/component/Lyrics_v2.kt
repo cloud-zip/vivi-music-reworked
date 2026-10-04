@@ -91,6 +91,7 @@ fun LyricsV2(
     val romanizeChineseLyrics by rememberPreference(LyricsRomanizeChineseKey, true)
     val romanizeHindiLyrics by rememberPreference(LyricsRomanizeHindiKey, true)
     val romanizePunjabiLyrics by rememberPreference(LyricsRomanizePunjabiKey, true)
+    val romanizeArabicLyrics by rememberPreference(LyricsRomanizeArabicKey, true)
 
     val openRouterApiKey by rememberPreference(OpenRouterApiKey, "")
     val deeplApiKey by rememberPreference(DeeplApiKey, "")
@@ -223,6 +224,9 @@ fun LyricsV2(
                             else if (romanizePunjabiLyrics && LyricsUtils.isPunjabi(entry.text)) {
                                 coroutineScope.launch { newEntry.romanizedTextFlow.value = LyricsUtils.romanizePunjabi(entry.text) }
                             }
+                            else if (romanizeArabicLyrics && LyricsUtils.isArabic(entry.text)) {
+                                coroutineScope.launch { newEntry.romanizedTextFlow.value = LyricsUtils.romanizeArabic(entry.text) }
+                            }
                             newEntry
                         }
                     } else {
@@ -272,6 +276,9 @@ fun LyricsV2(
                             }
                             else if (romanizePunjabiLyrics && LyricsUtils.isPunjabi(line)) {
                                 coroutineScope.launch { newEntry.romanizedTextFlow.value = LyricsUtils.romanizePunjabi(line) }
+                            }
+                            else if (romanizeArabicLyrics && LyricsUtils.isArabic(line)) {
+                                coroutineScope.launch { newEntry.romanizedTextFlow.value = LyricsUtils.romanizeArabic(line) }
                             }
                             newEntry
                         }

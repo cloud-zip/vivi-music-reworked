@@ -369,6 +369,7 @@ fun ViviMusicLyricsLine(
                 color = textColor.copy(alpha = sentenceAlpha),
                 style = TextStyle(
                     fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
+                    textDirection = if (com.music.vivi.lyrics.LyricsUtils.isArabic(entry.text)) androidx.compose.ui.text.style.TextDirection.Rtl else androidx.compose.ui.text.style.TextDirection.Ltr,
                     fontWeight = finalFontWeight,
                     lineHeight = (textSize * lineSpacing.coerceAtMost(1.3f)).sp,
                     textAlign = agentTextAlign,
@@ -394,6 +395,10 @@ fun ViviMusicLyricsLine(
                     fontSize = (textSize * 0.65f).sp,
                     fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                     color = textColor.copy(alpha = 0.6f),
+                    style = TextStyle(
+                        fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
+                        textDirection = if (com.music.vivi.lyrics.LyricsUtils.isArabic(romanized)) androidx.compose.ui.text.style.TextDirection.Rtl else androidx.compose.ui.text.style.TextDirection.Ltr
+                    ),
                     textAlign = agentTextAlign,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 2.dp).fillMaxWidth(),

@@ -145,6 +145,7 @@ import com.music.vivi.constants.LyricsRomanizeChineseKey
 import com.music.vivi.constants.LyricsRomanizeCyrillicByLineKey
 import com.music.vivi.constants.LyricsRomanizeHindiKey
 import com.music.vivi.constants.LyricsRomanizePunjabiKey
+import com.music.vivi.constants.LyricsRomanizeArabicKey
 import com.music.vivi.constants.LyricsRomanizeJapaneseKey
 import com.music.vivi.constants.LyricsRomanizeKoreanKey
 import com.music.vivi.constants.LyricsRomanizeKyrgyzKey
@@ -190,6 +191,7 @@ import com.music.vivi.lyrics.LyricsUtils.isBulgarian
 import com.music.vivi.lyrics.LyricsUtils.isChinese
 import com.music.vivi.lyrics.LyricsUtils.isHindi
 import com.music.vivi.lyrics.LyricsUtils.isPunjabi
+import com.music.vivi.lyrics.LyricsUtils.isArabic
 import com.music.vivi.lyrics.LyricsUtils.isJapanese
 import com.music.vivi.lyrics.LyricsUtils.isKorean
 import com.music.vivi.lyrics.LyricsUtils.isKyrgyz
@@ -201,6 +203,7 @@ import com.music.vivi.lyrics.LyricsUtils.parseLyrics
 import com.music.vivi.lyrics.LyricsUtils.romanizeChinese
 import com.music.vivi.lyrics.LyricsUtils.romanizeHindi
 import com.music.vivi.lyrics.LyricsUtils.romanizePunjabi
+import com.music.vivi.lyrics.LyricsUtils.romanizeArabic
 import com.music.vivi.lyrics.LyricsUtils.romanizeCyrillic
 import com.music.vivi.lyrics.LyricsUtils.romanizeJapanese
 import com.music.vivi.lyrics.LyricsUtils.romanizeKorean
@@ -266,6 +269,7 @@ fun Lyrics(
     val romanizeChineseLyrics by rememberPreference(LyricsRomanizeChineseKey, true)
     val romanizeHindiLyrics by rememberPreference(LyricsRomanizeHindiKey, true)
     val romanizePunjabiLyrics by rememberPreference(LyricsRomanizePunjabiKey, true)
+    val romanizeArabicLyrics by rememberPreference(LyricsRomanizeArabicKey, true)
     val lyricsGlowEffect by rememberPreference(LyricsGlowEffectKey, false)
     val lyricsAnimationStyle by rememberEnumPreference(LyricsAnimationStyleKey, LyricsAnimationStyle.VIVIMUSIC_1)
     val lyricsTextSize by rememberPreference(LyricsTextSizeKey, 24f)
@@ -400,6 +404,12 @@ fun Lyrics(
                     }
                 }
 
+                else if (romanizeArabicLyrics && isArabic(entry.text)) {
+                    scope.launch {
+                        newEntry.romanizedTextFlow.value = romanizeArabic(entry.text)
+                    }
+                }
+
                 newEntry
             }.let {
                 listOf(LyricsEntry.HEAD_LYRICS_ENTRY) + it
@@ -485,6 +495,12 @@ fun Lyrics(
                 else if (romanizePunjabiLyrics && isPunjabi(line)) {
                     scope.launch {
                         newEntry.romanizedTextFlow.value = romanizePunjabi(line)
+                    }
+                }
+
+                else if (romanizeArabicLyrics && isArabic(line)) {
+                    scope.launch {
+                        newEntry.romanizedTextFlow.value = romanizeArabic(line)
                     }
                 }
 
@@ -1119,7 +1135,8 @@ fun Lyrics(
                                     romanizeMacedonianLyrics ||
                                     romanizeChineseLyrics ||
                                     romanizeHindiLyrics ||
-                                    romanizePunjabiLyrics),
+                                    romanizePunjabiLyrics ||
+                                    romanizeArabicLyrics),
                     showTranslated = hasActiveTranslations,
                     isAutoScrollActive = isAutoScrollEnabled,
                     isSelectionModeActive = isSelectionModeActive,
@@ -1521,7 +1538,8 @@ fun Lyrics(
                                             romanizeMacedonianLyrics ||
                                             romanizeChineseLyrics ||
                                             romanizeHindiLyrics ||
-                                            romanizePunjabiLyrics),
+                                            romanizePunjabiLyrics ||
+                                            romanizeArabicLyrics),
                             textSize = lyricsTextSize,
                             lineSpacing = lyricsLineSpacing,
                             showTranslated = hasActiveTranslations,
@@ -1609,7 +1627,8 @@ fun Lyrics(
                                             romanizeMacedonianLyrics ||
                                             romanizeChineseLyrics ||
                                             romanizeHindiLyrics ||
-                                            romanizePunjabiLyrics),
+                                            romanizePunjabiLyrics ||
+                                            romanizeArabicLyrics),
                             showTranslated = hasActiveTranslations,
                             isAutoScrollActive = isAutoScrollEnabled,
                             isSelectionModeActive = isSelectionModeActive,
@@ -2402,14 +2421,20 @@ fun Lyrics(
                                     romanizeMacedonianLyrics ||
                                     romanizeChineseLyrics ||
                                     romanizeHindiLyrics ||
-                                    romanizePunjabiLyrics)) {
+                                    romanizePunjabiLyrics ||
+                                    romanizeArabicLyrics)) {
                             // Show secondary text (romanized or original) if available
                             subText?.let { text ->
+                                val isSubRtl = isArabic(text)
                                 Text(
                                     text = text,
                                     fontSize = 18.sp,
                                     fontFamily = activeFontFamily,
                                     color = expressiveAccent.copy(alpha = 0.6f),
+                                    style = TextStyle(
+                                        fontFamily = activeFontFamily,
+                                        textDirection = if (isSubRtl) androidx.compose.ui.text.style.TextDirection.Rtl else androidx.compose.ui.text.style.TextDirection.Ltr
+                                    ),
                                     textAlign = when (lyricsTextPosition) {
                                         LyricsPosition.LEFT -> TextAlign.Left
                                         LyricsPosition.CENTER -> TextAlign.Center

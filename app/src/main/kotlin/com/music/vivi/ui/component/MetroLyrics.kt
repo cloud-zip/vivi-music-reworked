@@ -231,6 +231,7 @@ fun MetroLyricsLine(
 
     val lyricStyle = TextStyle(
         fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
+        textDirection = if (mainText.containsRtl()) androidx.compose.ui.text.style.TextDirection.Rtl else androidx.compose.ui.text.style.TextDirection.Ltr,
         fontSize = if (entry.isBackground) (lyricsTextSize * 0.7f).sp else lyricsTextSize.sp,
         fontWeight = FontWeight.Bold,
         fontStyle = if (entry.isBackground) FontStyle.Italic else FontStyle.Normal,
@@ -302,11 +303,16 @@ fun MetroLyricsLine(
             }
 
             if (subText != null) {
+                val isSubRtl = subText.containsRtl()
                 Text(
                     text = subText,
                     fontSize = 18.sp,
                     fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                     color = baseLineColor.copy(alpha = 0.6f),
+                    style = TextStyle(
+                        fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
+                        textDirection = if (isSubRtl) androidx.compose.ui.text.style.TextDirection.Rtl else androidx.compose.ui.text.style.TextDirection.Ltr
+                    ),
                     textAlign = agentTextAlign,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 2.dp).fillMaxWidth(),
